@@ -4,32 +4,32 @@ using UnityEngine.AI;
 
 public class NavMeshZombie : MonoBehaviour
 {
-    [Header("目标与导航")]
-    public Transform player;          // 玩家
-    private NavMeshAgent agent;       // 寻路组件
+    [Header("Target & Navigation")]
+    public Transform player;          // Player reference
+    private NavMeshAgent agent;       // Navigation component
 
-    [Header("攻击设置")]
-    public float attackDistance = 2f; // 多近开始咬人
-    public float attackCooldown = 1.5f;// 攻击间隔
+    [Header("Attack Settings")]
+    public float attackDistance = 2f; // Distance to start attacking
+    public float attackCooldown = 1.5f;// Attack cooldown
     private float lastAttackTime = 0f;
 
-    [Header("音效控制")]
+    [Header("Audio Control")]
     public AudioSource audioSource;
-    public AudioClip attackSound;      // 攻击时的咬人声
-    public AudioClip[] chaseGrowls;    // 追击时的低吼声 (数组，可以放好几种不同的叫声)
-    public float growlInterval = 4f;   // 大概每隔几秒叫一次
+    public AudioClip attackSound;      // Attack bite sound
+    public AudioClip[] chaseGrowls;    // Chase growl sounds (array for variety)
+    public float growlInterval = 4f;   // Approximate interval between growls
     private float growlTimer = 0f;
 
-    [Header("动画控制")]
-    // 【1. 动画器变量】
+    [Header("Animation Control")]
+    // 1. Animator reference
     public Animator anim;
 
     void Start()
     {
-        // 获取寻路组件
+        // Get navigation component
         agent = GetComponent<NavMeshAgent>();
 
-        // 【2. 自动寻找动画器】去子物体(你的僵尸模型)身上找 Animator
+        // 2. Auto-find Animator on child objects (zombie model)
         if (anim == null)
         {
             anim = GetComponentInChildren<Animator>();
@@ -38,13 +38,13 @@ public class NavMeshZombie : MonoBehaviour
 
     void Update()
     {
-        // 如果玩家死了或者没找到玩家，就不动
+        // Stop if player is null or dead
         if (player == null) return;
 
-        // 计算僵尸和玩家的距离
+        // Calculate distance to player
         float distance = Vector3.Distance(transform.position, player.position);
 
-        // 如果距离小于攻击距离，就攻击；否则就追击
+        // Attack if within range, otherwise chase
         if (distance <= attackDistance)
         {
             AttackBehavior();
@@ -65,17 +65,17 @@ public class NavMeshZombie : MonoBehaviour
             anim.SetBool("isChasing", true);
         }
 
-        // --- [新增：追击时随机发出低吼声] ---
-        growlTimer -= Time.deltaTime; // 倒计时
+        // --- Random growl sounds during chase ---
+        growlTimer -= Time.deltaTime; // Countdown
         if (growlTimer <= 0f && chaseGrowls.Length > 0)
         {
-            // 从数组里随机挑一个声音播放
+            // Play a random growl from the array
             AudioClip randomGrowl = chaseGrowls[Random.Range(0, chaseGrowls.Length)];
             if (audioSource != null && randomGrowl != null)
             {
                 audioSource.PlayOneShot(randomGrowl);
             }
-            // 重置倒计时，加一点随机性(比如 3~5秒叫一次)，听起来更自然
+            // Reset timer with slight randomness for natural feel
             growlTimer = growlInterval + Random.Range(-1f, 1f);
         }
         // -----------------------------------
@@ -95,7 +95,7 @@ public class NavMeshZombie : MonoBehaviour
 
             if (anim != null) anim.SetTrigger("doAttack");
 
-            // --- [新增：播放攻击音效] ---
+            // --- Play attack sound ---
             if (audioSource != null && attackSound != null)
             {
                 audioSource.PlayOneShot(attackSound);
@@ -103,11 +103,11 @@ public class NavMeshZombie : MonoBehaviour
 
             if (player != null)
             {
-                // 获取玩家身上的血量脚本 (注意：如果你玩家的血量脚本不叫 PlayerHealth，请改成你实际的名字)
+                // Get player health component
                 PlayerHealth pHealth = player.GetComponent<PlayerHealth>();
                 if (pHealth != null)
                 {
-                    pHealth.TakeDamage(15f); // 咬一口扣15滴血，数值你可以自己改
+                    pHealth.TakeDamage(15f); // Bite damage per attack
                 }
             }
         }

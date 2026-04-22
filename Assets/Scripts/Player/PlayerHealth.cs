@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 #if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem; // 引入 Input System 命名空间
+using UnityEngine.InputSystem; // Input System namespace
 #endif
 
 public class PlayerHealth : MonoBehaviour
@@ -14,11 +14,11 @@ public class PlayerHealth : MonoBehaviour
     [Header("UI References")]
     public Image frontHealthBar;
     public Image backHealthBar;
-    public GameObject deathScreen; // 这里要拖拽刚才做的 DeathScreen 面板
+    public GameObject deathScreen; // Assign the death screen UI panel
 
     [Header("Audio Settings")]
-    public AudioClip deathClip;       // 拖拽你的 Game Over 音效到这里
-    public AudioSource audioSource;   // 用来播放声音的组件
+    public AudioClip deathClip;       // Death sound effect
+    public AudioSource audioSource;   // AudioSource for playing sounds
 
     public bool isDead = false;
 
@@ -28,7 +28,7 @@ public class PlayerHealth : MonoBehaviour
         if (frontHealthBar != null) frontHealthBar.fillAmount = 1f;
         if (backHealthBar != null) backHealthBar.fillAmount = 1f;
 
-        // 游戏开始时确保死亡屏幕是关掉的
+        // Ensure death screen is hidden on start
         if (deathScreen != null) deathScreen.SetActive(false);
     }
 
@@ -37,7 +37,7 @@ public class PlayerHealth : MonoBehaviour
         health = Mathf.Clamp(health, 0f, maxHealth);
         UpdateHealthUI();
 
-        // 只有没死且血量归零时才触发
+        // Only trigger death when alive and health reaches zero
         if (!isDead && health <= 0f)
         {
             Die();
@@ -46,8 +46,6 @@ public class PlayerHealth : MonoBehaviour
 
     public void UpdateHealthUI()
     {
-        // ... (这部分UI血条逻辑保持你原来的不变，此处省略以节省篇幅) ...
-        // 复制你原来的 UpdateHealthUI 代码即可，不需要改动
         float fillF = frontHealthBar != null ? frontHealthBar.fillAmount : 0f;
         float fillB = backHealthBar != null ? backHealthBar.fillAmount : 0f;
         float hFraction = health / maxHealth;
@@ -88,18 +86,18 @@ public class PlayerHealth : MonoBehaviour
 
     public bool RestoreHealth(float healAmount)
     {
-        // 1. 如果血已经是满的，直接返回 false（不要浪费血包）
+        // 1. Return false if already at full health
         if (health >= maxHealth)
         {
             return false;
         }
 
-        // 2. 加血逻辑
+        // 2. Restore health
         health += healAmount;
         health = Mathf.Clamp(health, 0f, maxHealth);
-        lerpTimer = 0f; // 重置血条动画计时器
+        lerpTimer = 0f; // Reset health bar animation timer
 
-        // 3. 返回 true，告诉血包“我吃掉你了”
+        // 3. Return true to indicate healing was applied
         return true;
     }
 
@@ -111,33 +109,27 @@ public class PlayerHealth : MonoBehaviour
 
         if (audioSource != null && deathClip != null)
         {
-            // PlayOneShot 的好处是：即使 AudioSource 正在播别的（比如脚步声），
-            // 这个声音也会叠加播放，不会被打断。
+            // PlayOneShot allows overlapping audio playback
             audioSource.PlayOneShot(deathClip);
         }
 
-        // 1. 禁用输入系统 (这是让你无法移动的关键！)
-        // 尝试获取 PlayerInput 组件并禁用它
+        // 1. Disable input system to prevent movement
+        // Disable PlayerInput component
 #if ENABLE_INPUT_SYSTEM
         PlayerInput input = GetComponent<PlayerInput>();
         if (input != null) input.enabled = false;
-     #endif
+#endif
 
-        // 2. 为了保险，也尝试禁用 FirstPersonController (如果存在)
-        // 这里的 StarterAssets.FirstPersonController 是默认命名空间，如果不报错就留着
-        // var controller = GetComponent<StarterAssets.FirstPersonController>();
-        // if (controller != null) controller.enabled = false;
-
-        // 3. 禁用武器开火
-        // 找到 WeaponHolder 并禁用它，这样你就不能开枪了
-        Transform weaponHolder = transform.Find("PlayerCameraRoot/WeaponHolder"); // 根据你的层级路径查找
+        // 2. Disable weapon firing
+        // Find and disable WeaponHolder to prevent shooting
+        Transform weaponHolder = transform.Find("PlayerCameraRoot/WeaponHolder"); // Search by hierarchy path
         if (weaponHolder != null) weaponHolder.gameObject.SetActive(false);
 
-        // 4. 处理鼠标光标
+        // 3. Unlock and show cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 5. 显示黑屏 UI
+        // 4. Show death screen UI
         if (deathScreen != null)
         {
             deathScreen.SetActive(true);

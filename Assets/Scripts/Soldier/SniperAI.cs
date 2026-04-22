@@ -3,35 +3,35 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer))]
 public class SniperAI : MonoBehaviour
 {
-    [Header("目标设置")]
+    [Header("Target Settings")]
     public Transform player;
 
-    [Header("战斗属性")]
+    [Header("Combat Stats")]
     public float detectionRange = 60f;
     public float fireRate = 3f;
     public float attackDamage = 40f;
     public float zombieDamage = 100f;
     public float aimDelay = 1.5f;
 
-    [Header("组件引用")]
+    [Header("Component References")]
     public Transform gunBarrel;
     public ParticleSystem muzzleFlash;
 
-    [Header("音效设置")]
+    [Header("Audio Settings")]
     public AudioSource gunSound;
     [Range(0f, 1f)]
     public float minVolume = 0.3f;
     [Range(0f, 1f)]
     public float maxVolume = 1.0f;
 
-    [Header("激光设置")]
+    [Header("Laser Settings")]
     public float laserWidth = 0.03f;
     public float laserNoise = 0.02f;
     public Color laserColor = Color.red;
     public Material laserMaterial;
     public ParticleSystem laserHitEffect;
 
-    [Header("目标切换设置")]
+    [Header("Target Switch Settings")]
     public float targetSwitchInterval = 2f;
     public string zombieTag = "Zombie";
 
@@ -49,7 +49,7 @@ public class SniperAI : MonoBehaviour
     private Transform currentTarget;
     private float nextTargetScanTime = 0f;
 
-    // 缓存视野组件，避免每帧GetComponent
+    // Cache visibility component to avoid per-frame GetComponent
     private EnemyVisibility visibility;
 
     void Start()
@@ -91,7 +91,7 @@ public class SniperAI : MonoBehaviour
         }
     }
 
-    // 获取实际作战范围（视野系统和detectionRange取较大值）
+    // Get effective range (max of visibility range and detection range)
     float GetEffectiveRange()
     {
         float range = detectionRange;
@@ -104,7 +104,7 @@ public class SniperAI : MonoBehaviour
 
     void Update()
     {
-        // 定期扫描最近目标
+        // Periodically scan for closest target
         if (Time.time >= nextTargetScanTime)
         {
             currentTarget = FindClosestTarget();
@@ -133,7 +133,7 @@ public class SniperAI : MonoBehaviour
             return;
         }
 
-        // 判断是否应该攻击当前目标
+        // Determine whether to engage current target
         bool shouldEngage = false;
 
         if (visibility != null)
@@ -141,26 +141,26 @@ public class SniperAI : MonoBehaviour
             bool targetIsZombie = currentTarget.CompareTag(zombieTag);
             if (targetIsZombie)
             {
-                // 对僵尸只用距离检测
+                // Use distance check only for zombies
                 float dist = Vector3.Distance(transform.position, currentTarget.position);
                 shouldEngage = dist <= detectionRange;
             }
             else
             {
-                // 对玩家需要视野系统确认
+                // Use visibility system for player
                 shouldEngage = visibility.canSeePlayer || visibility.isAlerted;
             }
         }
         else
         {
-            // 没有视野系统，纯距离检测
+            // No visibility system, use distance check only
             float dist = Vector3.Distance(transform.position, currentTarget.position);
             shouldEngage = dist <= detectionRange;
         }
 
         if (shouldEngage)
         {
-            // 平滑转向目标
+            // Smoothly rotate toward target
             Vector3 direction = (currentTarget.position - transform.position).normalized;
             direction.y = 0;
             transform.rotation = Quaternion.Slerp(
@@ -205,7 +205,7 @@ public class SniperAI : MonoBehaviour
         Transform closest = null;
         float closestDist = searchRange;
 
-        // 检查玩家
+        // Check player distance
         if (player != null)
         {
             float playerDist = Vector3.Distance(transform.position, player.position);
@@ -216,7 +216,7 @@ public class SniperAI : MonoBehaviour
             }
         }
 
-        // 检查所有僵尸
+        // Check all zombies
         GameObject[] zombies = GameObject.FindGameObjectsWithTag(zombieTag);
         foreach (GameObject z in zombies)
         {
@@ -327,7 +327,7 @@ public class SniperAI : MonoBehaviour
                 if (ph != null)
                 {
                     ph.TakeDamage(attackDamage);
-                    Debug.Log("【狙击手】命中玩家！伤害：" + attackDamage);
+                    Debug.Log("Sniper hit player! Damage: " + attackDamage);
                 }
             }
             else if (hit.collider.CompareTag(zombieTag))
@@ -337,7 +337,7 @@ public class SniperAI : MonoBehaviour
                 if (target != null)
                 {
                     target.TakeDamage(zombieDamage);
-                    Debug.Log("【狙击手】命中僵尸！伤害：" + zombieDamage);
+                    Debug.Log("Sniper hit zombie! Damage: " + zombieDamage);
                 }
             }
         }
@@ -350,7 +350,7 @@ public class SniperAI : MonoBehaviour
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // 如果有视野系统，额外画出视野范围
+        // Draw additional visibility range gizmo if available
         EnemyVisibility vis = GetComponent<EnemyVisibility>();
         if (vis != null)
         {

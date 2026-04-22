@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class PauseManager : MonoBehaviour
 {
-    [Header("UI 引用")]
+    [Header("UI References")]
     public GameObject pauseMenuUI;
 
     public GameObject optionsPanel;
@@ -15,7 +15,7 @@ public class PauseManager : MonoBehaviour
     void Start()
     {
         if (pauseMenuUI != null) pauseMenuUI.SetActive(false);
-        if (optionsPanel != null) optionsPanel.SetActive(false); // 【新增】确保选项面板默认关闭
+        if (optionsPanel != null) optionsPanel.SetActive(false); // Ensure options panel is closed by default
         isPaused = false;
         Time.timeScale = 1f;
     }
@@ -24,7 +24,7 @@ public class PauseManager : MonoBehaviour
     {
         bool escPressed = false;
 
-        // --- 兼容新老两套输入系统的终极检测 ---
+        // --- Compatible with both old and new Input Systems ---
 #if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
             escPressed = true;
@@ -68,10 +68,10 @@ public class PauseManager : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("退出游戏！");
-        Application.Quit(); // 打包后生效
+        Debug.Log("Quitting game!");
+        Application.Quit(); // Works in built game
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false; // 在编辑器里生效：自动退出播放模式
+        UnityEditor.EditorApplication.isPlaying = false; // Works in Editor: stop play mode
 #endif
     }
 }

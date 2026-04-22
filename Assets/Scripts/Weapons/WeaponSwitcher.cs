@@ -4,15 +4,15 @@ public class WeaponSwitcher : MonoBehaviour
 {
     public int selectedWeapon = 0;
 
-    // 【新增】记录每把武器是否解锁的数组
+    // Array tracking which weapons are unlocked
     public bool[] weaponUnlocked;
 
     void Start()
     {
-        // 自动根据你的枪械数量生成列表
+        // Auto-generate based on number of child weapons
         weaponUnlocked = new bool[transform.childCount];
 
-        // 默认只解锁第一把枪（序号0，也就是手枪）
+        // Only the first weapon (index 0, handgun) is unlocked by default
         if (weaponUnlocked.Length > 0)
         {
             weaponUnlocked[0] = true;
@@ -25,7 +25,7 @@ public class WeaponSwitcher : MonoBehaviour
     {
         int previousSelectedWeapon = selectedWeapon;
 
-        // --- 按键切换（加入了必须解锁的判定） ---
+        // --- Number key switching (requires weapon to be unlocked） ---
         if (Input.GetKeyDown(KeyCode.Alpha1) && weaponUnlocked.Length > 0 && weaponUnlocked[0])
         {
             selectedWeapon = 0;
@@ -39,7 +39,7 @@ public class WeaponSwitcher : MonoBehaviour
             selectedWeapon = 2;
         }
 
-        // --- 滚轮切换（遇到没解锁的枪会自动跳过） ---
+        // --- Scroll wheel switching (skips locked weapons) ---
         if (Input.GetAxis("Mouse ScrollWheel") > 0f)
         {
             int nextWeapon = selectedWeapon;
@@ -67,7 +67,7 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-    // 注意：这里改成了 public，为了让地上的枪能调用它！
+    // Public so weapon pickups can call this
     public void SelectWeapon()
     {
         int i = 0;
@@ -81,14 +81,14 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-    // 【新增】给地上的拾取物调用的“解锁并切枪”方法
+    // Called by weapon pickups to unlock and switch to a weapon
     public void UnlockWeapon(int weaponIndex)
     {
         if (weaponIndex >= 0 && weaponIndex < weaponUnlocked.Length)
         {
-            weaponUnlocked[weaponIndex] = true; // 解锁！
-            selectedWeapon = weaponIndex;       // 立刻把当前武器设为刚捡到的这把
-            SelectWeapon();                     // 刷新显示
+            weaponUnlocked[weaponIndex] = true; // Unlock weapon
+            selectedWeapon = weaponIndex;       // Switch to newly picked up weapon
+            SelectWeapon();                     // Refresh weapon display
         }
     }
 }
